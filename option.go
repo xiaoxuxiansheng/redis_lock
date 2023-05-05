@@ -7,6 +7,11 @@ const (
 	DefaultMaxActive = 100
 	// 默认最大空闲连接数
 	DefaultMaxIdle = 20
+
+	// 默认的分布式锁过期时间
+	DefaultLockExpireSeconds = 30
+	// 看门狗工作时间间隙
+	WatchDogWorkStepSeconds = 10
 )
 
 type ClientOptions struct {
@@ -86,14 +91,19 @@ func repairLock(o *LockOptions) {
 		o.blockWaitingSeconds = 5
 	}
 
-	// 分布式锁默认超时时间为 30 秒
-	if o.expireSeconds <= 0 {
-		o.expireSeconds = 30
+	// 倘若未设置分布式锁的过期时间，则会启动 watchdog
+	if o.expireSeconds > 0 {
+		return
 	}
+
+	// 用户未显式指定锁的过期时间，则此时会启动看门狗
+	o.expireSeconds = DefaultLockExpireSeconds
+	o.watchDogMode = true
 }
 
 type LockOptions struct {
 	isBlock             bool
 	blockWaitingSeconds int64
 	expireSeconds       int64
+	watchDogMode        bool
 }
