@@ -1,5 +1,7 @@
 package redis_lock
 
+import "time"
+
 const (
 	// 默认连接池超过 10 s 释放连接
 	DefaultIdleTimeoutSeconds = 10
@@ -106,4 +108,36 @@ type LockOptions struct {
 	blockWaitingSeconds int64
 	expireSeconds       int64
 	watchDogMode        bool
+}
+
+type RedLockOption func(*RedLockOptions)
+
+type RedLockOptions struct {
+	singleNodesTimeout time.Duration
+	expireDuration     time.Duration
+}
+
+func WithSingleNodesTimeout(singleNodesTimeout time.Duration) RedLockOption {
+	return func(o *RedLockOptions) {
+		o.singleNodesTimeout = singleNodesTimeout
+	}
+}
+
+func WithRedLockExpireDuration(expireDuration time.Duration) RedLockOption {
+	return func(o *RedLockOptions) {
+		o.expireDuration = expireDuration
+	}
+}
+
+type SingleNodeConf struct {
+	Network  string
+	Address  string
+	Password string
+	Opts     []ClientOption
+}
+
+func repairRedLock(o *RedLockOptions) {
+	if o.singleNodesTimeout <= 0 {
+		o.singleNodesTimeout = DefaultSingleLockTimeout
+	}
 }
