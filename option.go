@@ -81,9 +81,9 @@ func WithBlockWaitingSeconds(waitingSeconds int64) LockOption {
 	}
 }
 
-func WithExpireSeconds(expireSeeconds int64) LockOption {
+func WithExpireSeconds(expireSeconds int64) LockOption {
 	return func(o *LockOptions) {
-		o.expireSeconds = expireSeeconds
+		o.expireSeconds = expireSeconds
 	}
 }
 
