@@ -88,7 +88,7 @@ func (c *Client) Get(ctx context.Context, key string) (string, error) {
 
 	reply, err := conn.Do("GET", key)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	r, _ := reply.(string)
@@ -107,7 +107,7 @@ func (c *Client) Set(ctx context.Context, key, value string) (int64, error) {
 
 	reply, err := conn.Do("SET", key, value)
 	if err != nil {
-		return -1, nil
+		return -1, err
 	}
 
 	r, _ := reply.(int64)
@@ -127,7 +127,7 @@ func (c *Client) SetNEX(ctx context.Context, key, value string, expireSeconds in
 
 	reply, err := conn.Do("SET", key, value, "EX", expireSeconds, "NX")
 	if err != nil {
-		return -1, nil
+		return -1, err
 	}
 
 	r, _ := reply.(int64)
@@ -147,11 +147,26 @@ func (c *Client) SetNX(ctx context.Context, key, value string) (int64, error) {
 
 	reply, err := conn.Do("SET", key, value, "NX")
 	if err != nil {
-		return -1, nil
+		return -1, err
 	}
 
 	r, _ := reply.(int64)
 	return r, nil
+}
+
+func (c *Client) Del(ctx context.Context, key string) error {
+	if key == "" {
+		return errors.New("redis DEL key can't be empty")
+	}
+
+	conn, err := c.pool.GetContext(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	_, err = conn.Do("DEL", key)
+	return err
 }
 
 // Eval 支持使用 lua 脚本.
