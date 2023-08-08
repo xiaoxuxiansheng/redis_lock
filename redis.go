@@ -76,6 +76,44 @@ func (c *Client) getRedisConn() (redis.Conn, error) {
 	return conn, nil
 }
 
+func (c *Client) Get(ctx context.Context, key string) (string, error) {
+	if key == "" {
+		return "", errors.New("redis GET key can't be empty")
+	}
+	conn, err := c.pool.GetContext(ctx)
+	if err != nil {
+		return "", err
+	}
+	defer conn.Close()
+
+	reply, err := conn.Do("GET", key)
+	if err != nil {
+		return "", nil
+	}
+
+	r, _ := reply.(string)
+	return r, nil
+}
+
+func (c *Client) Set(ctx context.Context, key, value string) (int64, error) {
+	if key == "" || value == "" {
+		return -1, errors.New("redis SET key or value can't be empty")
+	}
+	conn, err := c.pool.GetContext(ctx)
+	if err != nil {
+		return -1, err
+	}
+	defer conn.Close()
+
+	reply, err := conn.Do("SET", key, value)
+	if err != nil {
+		return -1, nil
+	}
+
+	r, _ := reply.(int64)
+	return r, nil
+}
+
 func (c *Client) SetNEX(ctx context.Context, key, value string, expireSeconds int64) (int64, error) {
 	if key == "" || value == "" {
 		return -1, errors.New("redis SET keyNX or value can't be empty")
