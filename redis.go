@@ -136,7 +136,7 @@ func (c *Client) SetNEX(ctx context.Context, key, value string, expireSeconds in
 
 func (c *Client) SetNX(ctx context.Context, key, value string) (int64, error) {
 	if key == "" || value == "" {
-		return -1, errors.New("redis SET keyNX or value can't be empty")
+		return -1, errors.New("redis SET key NX or value can't be empty")
 	}
 
 	conn, err := c.pool.GetContext(ctx)
