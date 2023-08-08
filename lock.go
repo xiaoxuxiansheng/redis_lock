@@ -7,12 +7,15 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gomodule/redigo/redis"
 	"github.com/xiaoxuxiansheng/redis_lock/utils"
 )
 
 const RedisLockKeyPrefix = "REDIS_LOCK_PREFIX_"
 
 var ErrLockAcquiredByOthers = errors.New("lock is acquired by others")
+
+var ErrNil = redis.ErrNil
 
 func IsRetryableErr(err error) bool {
 	return errors.Is(err, ErrLockAcquiredByOthers)
