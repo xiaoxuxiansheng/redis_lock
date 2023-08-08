@@ -134,6 +134,26 @@ func (c *Client) SetNEX(ctx context.Context, key, value string, expireSeconds in
 	return r, nil
 }
 
+func (c *Client) SetNX(ctx context.Context, key, value string) (int64, error) {
+	if key == "" || value == "" {
+		return -1, errors.New("redis SET keyNX or value can't be empty")
+	}
+
+	conn, err := c.pool.GetContext(ctx)
+	if err != nil {
+		return -1, err
+	}
+	defer conn.Close()
+
+	reply, err := conn.Do("SET", key, value, "NX")
+	if err != nil {
+		return -1, nil
+	}
+
+	r, _ := reply.(int64)
+	return r, nil
+}
+
 // Eval 支持使用 lua 脚本.
 func (c *Client) Eval(ctx context.Context, src string, keyCount int, keysAndArgs []interface{}) (interface{}, error) {
 	args := make([]interface{}, 2+len(keysAndArgs))
