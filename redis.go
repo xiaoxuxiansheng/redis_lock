@@ -169,6 +169,21 @@ func (c *Client) Del(ctx context.Context, key string) error {
 	return err
 }
 
+func (c *Client) Incr(ctx context.Context, key string) error {
+	if key == "" {
+		return errors.New("redis INCR key can't be empty")
+	}
+
+	conn, err := c.pool.GetContext(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	_, err = conn.Do("INCR", key)
+	return err
+}
+
 // Eval 支持使用 lua 脚本.
 func (c *Client) Eval(ctx context.Context, src string, keyCount int, keysAndArgs []interface{}) (interface{}, error) {
 	args := make([]interface{}, 2+len(keysAndArgs))
