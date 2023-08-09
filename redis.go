@@ -3,6 +3,7 @@ package redis_lock
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -86,13 +87,7 @@ func (c *Client) Get(ctx context.Context, key string) (string, error) {
 	}
 	defer conn.Close()
 
-	reply, err := conn.Do("GET", key)
-	if err != nil {
-		return "", err
-	}
-
-	r, _ := reply.(string)
-	return r, nil
+	return redis.String(conn.Do("GET", key))
 }
 
 func (c *Client) Set(ctx context.Context, key, value string) (int64, error) {
@@ -105,13 +100,16 @@ func (c *Client) Set(ctx context.Context, key, value string) (int64, error) {
 	}
 	defer conn.Close()
 
-	reply, err := conn.Do("SET", key, value)
+	resp, err := conn.Do("SET", key, value)
 	if err != nil {
 		return -1, err
 	}
 
-	r, _ := reply.(int64)
-	return r, nil
+	if respStr, ok := resp.(string); ok && strings.ToLower(respStr) == "ok" {
+		return 1, nil
+	}
+
+	return redis.Int64(resp, err)
 }
 
 func (c *Client) SetNEX(ctx context.Context, key, value string, expireSeconds int64) (int64, error) {
@@ -130,8 +128,11 @@ func (c *Client) SetNEX(ctx context.Context, key, value string, expireSeconds in
 		return -1, err
 	}
 
-	r, _ := reply.(int64)
-	return r, nil
+	if respStr, ok := reply.(string); ok && strings.ToLower(respStr) == "ok" {
+		return 1, nil
+	}
+
+	return redis.Int64(reply, err)
 }
 
 func (c *Client) SetNX(ctx context.Context, key, value string) (int64, error) {
@@ -150,8 +151,11 @@ func (c *Client) SetNX(ctx context.Context, key, value string) (int64, error) {
 		return -1, err
 	}
 
-	r, _ := reply.(int64)
-	return r, nil
+	if respStr, ok := reply.(string); ok && strings.ToLower(respStr) == "ok" {
+		return 1, nil
+	}
+
+	return redis.Int64(reply, err)
 }
 
 func (c *Client) Del(ctx context.Context, key string) error {
@@ -180,12 +184,7 @@ func (c *Client) Incr(ctx context.Context, key string) (int64, error) {
 	}
 	defer conn.Close()
 
-	resp, err := conn.Do("INCR", key)
-	if err != nil {
-		return -1, nil
-	}
-	incred, _ := resp.(int64)
-	return incred, nil
+	return redis.Int64(conn.Do("INCR", key))
 }
 
 // Eval 支持使用 lua 脚本.
