@@ -128,7 +128,8 @@ func (r *RedisLock) runWatchDog(ctx context.Context) {
 
 		// 看门狗负责在用户未显式解锁时，持续为分布式锁进行续期
 		// 通过 lua 脚本，延期之前会确保保证锁仍然属于自己
-		_ = r.DelayExpire(ctx, WatchDogWorkStepSeconds)
+		// 为避免因为网络延迟而导致锁被提前释放的问题，watch dog 续约时需要把锁的过期时长额外增加 5 s
+		_ = r.DelayExpire(ctx, WatchDogWorkStepSeconds+5)
 	}
 }
 
