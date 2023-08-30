@@ -9,6 +9,11 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
+type LockClient interface {
+	SetNEX(ctx context.Context, key, value string, expireSeconds int64) (int64, error)
+	Eval(ctx context.Context, src string, keyCount int, keysAndArgs []interface{}) (interface{}, error)
+}
+
 // Client Redis 客户端.
 type Client struct {
 	ClientOptions
